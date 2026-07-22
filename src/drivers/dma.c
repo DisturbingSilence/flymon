@@ -6,7 +6,12 @@ static dma_callback_t dma1_callbacks[8] = {};
 int dma_init(const dma_config_t* cfg)
 {
     if(!cfg) return ERR_INV_ARG;
-    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_DMA1);
+    if(cfg->dma == DMA1)
+        LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_DMA1);
+    else if(cfg->dma == DMA2)
+         LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_DMA2);
+    else
+        return ERR_INV_ARG;
     LL_DMA_InitTypeDef dma_cfg =
     {
         .Direction = cfg->direction,

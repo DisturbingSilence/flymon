@@ -30,7 +30,9 @@ set(DRIVER_SOURCES
   ${DRV_P}/i2c.c
   ${DRV_P}/ssd1306.c
   ${DRV_P}/syscalls.c
-  ${DRV_P}/systime.c)
+  ${DRV_P}/systime.c
+  ${DRV_P}/spi.c
+  ${DRV_P}/w25qxx.c)
 set(SERVICE_SOURCES
   ${SRV_P}/font.c
   ${SRV_P}/scheduler.c)

@@ -4,7 +4,17 @@
 #include "dma.h"
 int i2c_init(I2C_TypeDef* i2cx)
 {
-    LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_I2C1);
+    if(!i2cx) return ERR_INV_ARG;
+
+    if(i2cx == I2C1)
+        LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_I2C1);
+    else if(i2cx == I2C2)
+        LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_I2C2);
+    else if(i2cx == I2C3)
+        LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_I2C3);
+    else
+        return ERR_INV_ARG;
+
     LL_I2C_InitTypeDef i2c1_cfg =
     {
         .PeripheralMode = LL_I2C_MODE_I2C,
@@ -14,7 +24,7 @@ int i2c_init(I2C_TypeDef* i2cx)
         .TypeAcknowledge = LL_I2C_ACK,
         .OwnAddrSize = LL_I2C_OWNADDRESS1_7BIT
     };
-    if(!LL_I2C_Init(i2cx,&i2c1_cfg))
+    if(LL_I2C_Init(i2cx,&i2c1_cfg) != SUCCESS)
     {
         return ERR_INIT_FAILURE;
     }
@@ -23,6 +33,7 @@ int i2c_init(I2C_TypeDef* i2cx)
 }
 int i2c_start_transaction(I2C_TypeDef* i2cx,uint8_t addr)
 {
+    if(!i2cx) return ERR_INV_ARG;
     uint32_t timeout = 100000UL;
     while(LL_I2C_IsActiveFlag_BUSY(i2cx))
     {
@@ -50,6 +61,7 @@ int i2c_start_transaction(I2C_TypeDef* i2cx,uint8_t addr)
 }
 int i2c_write_bytes(I2C_TypeDef* i2cx,const uint8_t* buf,uint32_t len)
 {
+    if(!(i2cx && buf)) return ERR_INV_ARG;
     uint32_t timeout;
     for(const uint8_t* byte = buf;byte < buf + len;byte++)
     {
@@ -59,16 +71,23 @@ int i2c_write_bytes(I2C_TypeDef* i2cx,const uint8_t* buf,uint32_t len)
         {
             if(--timeout == 0) return ERR_TIMEOUT;
         }
+        timeout = 100000UL;
+        while(!LL_I2C_IsActiveFlag_BTF(i2cx))
+        {
+            if(--timeout == 0) return ERR_TIMEOUT;
+        }
     }
     return ERR_OK;
 }
 int i2c_end_transaction(I2C_TypeDef* i2cx)
 {
+    if(!i2cx) return ERR_INV_ARG;
     LL_I2C_GenerateStopCondition(i2cx);
     return ERR_OK;
 }
 int i2c_write(I2C_TypeDef* i2cx,uint8_t addr,const uint8_t* buf,uint32_t len)
 {
+    if(!(i2cx && buf)) return ERR_INV_ARG;
     RET_ERR(i2c_start_transaction(i2cx,addr));
     RET_ERR(i2c_write_bytes(i2cx,buf,len));
     RET_ERR(i2c_end_transaction(i2cx));
@@ -99,7 +118,7 @@ int i2c_dma_write(I2C_TypeDef* i2cx,uint8_t addr,const dma_transfer_t* dma_info)
 }
 int i2c_dma_finish(I2C_TypeDef* i2cx)
 {
-    uint32_t timeout = 100000UL;
+    if(!i2cx) return ERR_INV_ARG;
     LL_I2C_DisableDMAReq_TX(i2cx);
     return i2c_end_transaction(i2cx);
 }

@@ -33,7 +33,7 @@ set(LL_SOURCES
     ${hal_SOURCE_DIR}/Src/stm32f4xx_ll_usart.c
     ${hal_SOURCE_DIR}/Src/stm32f4xx_ll_i2c.c
     ${hal_SOURCE_DIR}/Src/stm32f4xx_ll_dma.c
-    #${hal_SOURCE_DIR}/Src/stm32f4xx_ll_spi.c
+    ${hal_SOURCE_DIR}/Src/stm32f4xx_ll_spi.c
     #${hal_SOURCE_DIR}/Src/stm32f4xx_ll_pwr.c
     ${hal_SOURCE_DIR}/Src/stm32f4xx_ll_tim.c
     #${hal_SOURCE_DIR}/Src/stm32f4xx_ll_exti.c

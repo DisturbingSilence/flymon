@@ -9,6 +9,7 @@ uint8_t ssd1306_framebuffer[SSD1306_FRAMEBUFFER_SIZE] = {};
 static volatile bool is_oled_busy = false;
 void ssd1306_init()
 {
+    i2c_init(I2C1);
     dma_config_t dma_cfg =
     {
         .dma = DMA1,
@@ -81,14 +82,6 @@ void ssd1306_update()
     {
         is_oled_busy = false;
     }
-    /*
-
-    i2c_start_transaction(I2C1,SSD1306_ADDR);
-    i2c_write_bytes(I2C1,buf,sizeof(buf));
-    i2c_write_bytes(I2C1,ssd1306_framebuffer,SSD1306_FRAMEBUFFER_SIZE);
-    i2c_end_transaction(I2C1);
-*/
-    //i2c_write(I2C1,SSD1306_ADDR,);
 }
 void ssd1306_set_pixel(unsigned x,unsigned y,bool value)
 {
@@ -156,6 +149,13 @@ void ssd1306_draw_text(const char* txt,unsigned x1,unsigned y1)
             cury += FONT_HEIGHT;
         }
         if(cury >= SSD1306_HEIGHT) return;
+        if (*txt == '\n')
+        {
+            curx = x1;
+            cury += FONT_HEIGHT;
+            ++txt;
+            continue;
+        }
         ssd1306_draw_bmp(FONT[*txt - ' '],fwidth,FONT_HEIGHT,curx,cury);
         curx += fwidth;
         ++txt;

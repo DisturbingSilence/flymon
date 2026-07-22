@@ -5,14 +5,15 @@
 int board_init()
 {
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
-    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOC);
+    /*LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOC);
     LL_GPIO_InitTypeDef gpio_cfg = {};
     gpio_cfg.Pin = LL_GPIO_PIN_13;
     gpio_cfg.Mode = LL_GPIO_MODE_OUTPUT;
     gpio_cfg.Pull = LL_GPIO_PULL_NO;
     gpio_cfg.Speed = LL_GPIO_SPEED_FREQ_LOW;
     gpio_cfg.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-    return LL_GPIO_Init(GPIOC,&gpio_cfg) == SUCCESS;
+    return LL_GPIO_Init(GPIOC,&gpio_cfg) == SUCCESS;*/
+    return SUCCESS;
 }
 int board_init_i2c1_pins()
 {
@@ -35,4 +36,20 @@ int board_init_usart1_pins()
     gpio_cfg.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
     gpio_cfg.Alternate = LL_GPIO_AF_7;
     return LL_GPIO_Init(GPIOB,&gpio_cfg) == SUCCESS;
+}
+int board_init_spi2_pins()
+{
+    LL_GPIO_InitTypeDef gpio_cfg = {};
+    gpio_cfg.Pin = LL_GPIO_PIN_13 | LL_GPIO_PIN_14 | LL_GPIO_PIN_15;
+    gpio_cfg.Mode = LL_GPIO_MODE_ALTERNATE;
+    gpio_cfg.Pull = LL_GPIO_PULL_NO;
+    gpio_cfg.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+    gpio_cfg.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
+    gpio_cfg.Alternate = LL_GPIO_AF_5;
+    int err = LL_GPIO_Init(GPIOB,&gpio_cfg);
+
+    gpio_cfg.Pin = LL_GPIO_PIN_12;
+    gpio_cfg.Mode = LL_GPIO_MODE_OUTPUT;
+    gpio_cfg.Pull = LL_GPIO_PULL_NO;
+    return LL_GPIO_Init(GPIOB,&gpio_cfg) == SUCCESS && err == SUCCESS;
 }

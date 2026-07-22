@@ -1,6 +1,7 @@
 #include "systime.h"
 #include "stm32f4xx_ll_rcc.h"
 #include "core_cm4.h"
+#include "err.h"
 static volatile systime_t systime = 0;
 void SysTick_Handler()
 {
@@ -10,15 +11,19 @@ systime_t systime_get()
 {
     return systime;
 }
-int systime_init()
+int systime_init(systime_t ticks_per_second)
 {
     LL_RCC_ClocksTypeDef clocks = {};
     LL_RCC_GetSystemClocksFreq(&clocks);
-    if(SysTick_Config(clocks.SYSCLK_Frequency / 1000) != 0) // interrupt every millisecond
+    if(SysTick_Config(clocks.SYSCLK_Frequency / ticks_per_second) != 0)
     {
-        return 1;
+        return ERR_INIT_FAILURE;
     }
-    NVIC_SetPriority(SysTick_IRQn,0);
     NVIC_EnableIRQ(SysTick_IRQn);
-    return 0;
+    return ERR_OK;
+}
+void sleep(systime_t ticks)
+{
+    systime_t start = systime;
+    while(systime - start < ticks);
 }
