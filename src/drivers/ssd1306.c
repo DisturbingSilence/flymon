@@ -7,9 +7,10 @@
 #include <drivers/err.h>
 uint8_t ssd1306_framebuffer[SSD1306_FRAMEBUFFER_SIZE] = {};
 static volatile bool is_oled_busy = false;
-void ssd1306_init()
+int ssd1306_init()
 {
-    i2c_init(I2C1);
+    int err = i2c_init(I2C1);
+    if(err != ERR_OK) return err;
     dma_config_t dma_cfg =
     {
         .dma = DMA1,
@@ -18,7 +19,8 @@ void ssd1306_init()
         .direction = LL_DMA_DIRECTION_MEMORY_TO_PERIPH,
         .priority = LL_DMA_PRIORITY_LOW,
     };
-    dma_init(&dma_cfg);
+    err = dma_init(&dma_cfg);
+    if(err != ERR_OK) return err;
     uint8_t cmds[] =
     {
         0x00,               // Control byte Co = 0,D/C# = 0. All next bytes are commands
@@ -39,7 +41,7 @@ void ssd1306_init()
         0x2E,               // Deactivate scroll
         0xAF                // Display ON
     };
-    ssd1306_write_cmds(cmds,sizeof(cmds));
+    return ssd1306_write_cmds(cmds,sizeof(cmds));
 }
 void ssd1306_set_window(uint8_t page_start,uint8_t page_end,uint8_t col_start,uint8_t col_end)
 {
@@ -66,7 +68,6 @@ void ssd1306_update()
     if(is_oled_busy) return;
     is_oled_busy = true;
     static uint8_t buf[] = {0x40};
-
     dma_transfer_t tr_info =
     {
         .dma = DMA1,
@@ -78,6 +79,7 @@ void ssd1306_update()
         .len = SSD1306_FRAMEBUFFER_SIZE,
         .on_complete_callback = ssd1306_dma_on_complete
     };
+
     if(i2c_dma_write(I2C1,SSD1306_ADDR,&tr_info) != ERR_OK)
     {
         is_oled_busy = false;
@@ -112,9 +114,9 @@ void ssd1306_clear(bool value)
         ssd1306_framebuffer[i] = color;
     }
 }
-void ssd1306_write_cmds(const uint8_t* cmds,uint32_t num_cmds)
+int ssd1306_write_cmds(const uint8_t* cmds,uint32_t num_cmds)
 {
-    i2c_write(I2C1,SSD1306_ADDR,cmds,num_cmds);
+    return i2c_write(I2C1,SSD1306_ADDR,cmds,num_cmds);
 }
 void ssd1306_draw_bmp(const uint8_t* pixels,unsigned width,unsigned height,unsigned x1,unsigned y1)
 {

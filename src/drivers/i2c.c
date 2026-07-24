@@ -7,13 +7,21 @@ int i2c_init(I2C_TypeDef* i2cx)
     if(!i2cx) return ERR_INV_ARG;
 
     if(i2cx == I2C1)
-        LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_I2C1);
+    {
+         LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_I2C1);
+    }
     else if(i2cx == I2C2)
+    {
         LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_I2C2);
+    }
     else if(i2cx == I2C3)
+    {
         LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_I2C3);
+    }
     else
+    {
         return ERR_INV_ARG;
+    }
 
     LL_I2C_InitTypeDef i2c1_cfg =
     {

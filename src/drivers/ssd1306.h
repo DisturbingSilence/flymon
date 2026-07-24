@@ -7,8 +7,8 @@
 #define SSD1306_HEIGHT 64
 #define SSD1306_FRAMEBUFFER_SIZE ((SSD1306_WIDTH * SSD1306_HEIGHT) / 8)
 
-void ssd1306_init();
-void ssd1306_write_cmds(const uint8_t* cmds,uint32_t num_cmds);
+int ssd1306_init();
+int ssd1306_write_cmds(const uint8_t* cmds,uint32_t num_cmds);
 void ssd1306_set_window(uint8_t page_start,uint8_t page_end,uint8_t col_start,uint8_t col_end);
 void ssd1306_update();
 
