@@ -49,6 +49,6 @@ int board_init_spi2_pins()
 
     gpio_cfg.Pin = LL_GPIO_PIN_12;
     gpio_cfg.Mode = LL_GPIO_MODE_OUTPUT;
-    gpio_cfg.Pull = LL_GPIO_PULL_NO;
+    gpio_cfg.Pull = LL_GPIO_PULL_UP;
     return LL_GPIO_Init(GPIOB,&gpio_cfg) == SUCCESS && err == SUCCESS;
 }

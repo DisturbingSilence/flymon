@@ -39,21 +39,14 @@ int spi_init(SPI_TypeDef* spix)
     return ERR_OK;
 }
 
-void spi_cs_select()
-{
-    LL_GPIO_ResetOutputPin(GPIOB,LL_GPIO_PIN_12);
-}
-void spi_cs_deselect()
-{
-    LL_GPIO_SetOutputPin(GPIOB,LL_GPIO_PIN_12);
-}
 int spi_transfer(SPI_TypeDef* spix,const uint8_t* tx,uint8_t* rx,uint32_t len)
 {
     if (!spix) return ERR_INV_ARG;
+    if (len == 0) return ERR_OK;
     while(len--)
     {
          WAIT_TIMEOUT(!LL_SPI_IsActiveFlag_TXE(spix),SPI_TIMEOUT);
-         LL_SPI_TransmitData8(spix,tx ? *tx++ : 0xFE);
+         LL_SPI_TransmitData8(spix,tx ? *tx++ : 0xFF);
          WAIT_TIMEOUT(!LL_SPI_IsActiveFlag_RXNE(spix),SPI_TIMEOUT);
          uint8_t rx_byte = LL_SPI_ReceiveData8(spix);
          if (rx) *rx++ = rx_byte;

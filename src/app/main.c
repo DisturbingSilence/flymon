@@ -7,35 +7,29 @@
 #include <drivers/err.h>
 #include "stm32f4xx_ll_gpio.h"
 static int counter = 0;
+
+static uint8_t to_write[] = {0xDE,0xAD,0xBE,0xEF};
+static uint8_t rx_buf[sizeof(to_write)] = {};
 void oled_task()
 {
     ssd1306_clear(1);
     ssd1306_set_window(0,7,0,127);
     counter++;
     char buf[50];
-    sprintf(buf,"TEST %d",counter);
-    /*uint8_t mfr_id = 0,mem_type = 0,capacity = 0;
-    if (w25qxx_read_jedec_id(&mfr_id,&mem_type,&capacity) == ERR_OK)
+    char* pos = buf + sprintf(buf,"VALS:");
+    for (int i = 0 ; i < sizeof(to_write);i++)
     {
-        sprintf(buf,"TEST:#%d\nMF=0x%02X\nMTP=0x%02X,CAP=0x%02X\n%s",counter,
-            mfr_id,mem_type,capacity,(mfr_id == 0xEF && capacity == 0x17) ? "W25Q64JV DETECTED" : "FAILED");
+        pos += sprintf(pos,"0X%02X,",to_write[i]);
+    }
+    /*if (mfr_id != 0)
+    {
+        sprintf(buf,"TEST:#%d\nMF=0X%02X\nCAP=0X%02X\nMT=0X%02X",counter,
+            mfr_id,capacity,mem_type);
     }
     else
     {
         sprintf(buf,"FAILED TO READ JEDEC\n ID");
-        }
-    uint8_t cmds[] =
-    {
-        0x00,                       // control byte
-        0x21,0,127,     // reset column start/end addr
-        0x22,0,7    // reset page start/end addr
-    };
-    int err = ssd1306_write_cmds(cmds, sizeof(cmds));
-    if (err != ERR_OK)
-    {
-        LL_GPIO_TogglePin(GPIOC,LL_GPIO_PIN_13);
-        }*/
-        //sprintf(buf,"TEST %d",counter);
+    }*/
     ssd1306_draw_text(buf,0,0);
     ssd1306_update();
 }
@@ -44,12 +38,16 @@ int main()
 {
     board_init();
     board_init_i2c1_pins();
-    //board_init_spi2_pins();
+    board_init_spi2_pins();
     LL_GPIO_ResetOutputPin(GPIOC,LL_GPIO_PIN_13);
     systime_init(1000);
-    //w25qxx_init();
-    //w25qxx_read_jedec_id(&mf,&mem,&cap);
+    w25qxx_flash_t flash;
+    if(w25qxx_init(GPIOB,LL_GPIO_PIN_12,SPI2,&flash) != ERR_OK) { LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13); while(1); }
     if (ssd1306_init() != ERR_OK) { LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13); while(1); }
+
+    w25qxx_write(&flash,0,0,to_write,sizeof(to_write));
+    sleep(20);
+    w25qxx_read(&flash,0,0,rx_buf,sizeof(to_write));
     ssd1306_init();
     scheduler_add_task(oled_task,1000);
     scheduler_run();
