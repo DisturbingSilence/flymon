@@ -108,17 +108,11 @@ int w25qxx_write(w25qxx_flash_t* flash,uint32_t page,uint32_t offs,const uint8_t
     if(page >= flash->pages || offs >= PAGE_SIZE) return ERR_INV_ARG;
     if(len == 0) return ERR_OK;
     if ((page * PAGE_SIZE + offs + len) > (flash->pages * PAGE_SIZE)) return ERR_INV_ARG;
+    if (w25qxx_is_busy(flash)) return ERR_BUSY;
     uint8_t tx_data[266];
     uint32_t start_page = page;
     uint32_t end_page = start_page + (len + offs - 1) / PAGE_SIZE;
     uint32_t num_pages = end_page - start_page + 1;
-
-
-   /*  uint16_t start_sector = start_page / SECTOR_SIZE;
-    uint16_t end_sector = end_page / SECTOR_SIZE;
-    uint16_t num_sectors = end_sector - start_sector + 1;
-*/
-
     uint32_t data_pos = 0;
     for (uint32_t i = 0; i < num_pages;i++)
 	{
@@ -156,10 +150,9 @@ int w25qxx_read(w25qxx_flash_t* flash,uint32_t page,uint32_t offs,uint8_t* data,
     if(page >= flash->pages || offs >= PAGE_SIZE) return ERR_INV_ARG;
     if(len == 0) return ERR_OK;
     if (w25qxx_is_busy(flash)) return ERR_BUSY;
+
     uint32_t addr = page * PAGE_SIZE + offs;
-
     if (addr + len > flash->pages * PAGE_SIZE) return ERR_INV_ARG;
-
     uint8_t tx_data[4] =
     {
         0x03,

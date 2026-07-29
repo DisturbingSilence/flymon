@@ -10,6 +10,7 @@ enum
     ERR_INV_DEVICE,
     ERR_IO
 };
-#define PANIC(err) panic(err,__FILE__,__LINE__)
+#define PANIC(err) if(err != ERR_OK) fatal_error(err);
 #define RET_ERR(err) if(err != ERR_OK) return err;
 void panic(uint32_t err,const char* file,uint32_t line);
+void fatal_error(uint32_t errcode);

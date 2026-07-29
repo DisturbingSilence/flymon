@@ -1,6 +1,8 @@
 #pragma once
 #include <stdint.h>
 #include "stm32f4xx_ll_dma.h"
+
+
 typedef struct
 {
     DMA_TypeDef* dma;
@@ -10,8 +12,14 @@ typedef struct
     uint32_t priority;
 } dma_config_t;
 
-typedef void(*dma_callback_t)();
+typedef struct
+{
+    DMA_TypeDef* instance;
+    uint32_t stream;
+    uint32_t timeout;
+} dma_channel_t;
 
-int dma_init(const dma_config_t* cfg);
-void dma_set_callback(uint32_t stream,dma_callback_t clbck);
-int dma_start(DMA_TypeDef* dma,uint32_t stream,uint32_t src,uint32_t dst,uint32_t len);
+typedef void(*dma_callback_t)(void*);
+int dma_init(dma_channel_t* bus,const dma_config_t* cfg);
+void dma_set_callback(dma_channel_t* bus,dma_callback_t clbck,void* ctx);
+int dma_start(dma_channel_t* bus,uint32_t src,uint32_t dst,uint32_t len);

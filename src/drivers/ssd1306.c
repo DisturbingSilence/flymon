@@ -5,22 +5,8 @@
 #include <drivers/i2c.h>
 #include <drivers/dma.h>
 #include <drivers/err.h>
-uint8_t ssd1306_framebuffer[SSD1306_FRAMEBUFFER_SIZE] = {};
-static volatile bool is_oled_busy = false;
-int ssd1306_init()
+int ssd1306_init(ssd1306_device_t* dev)
 {
-    int err = i2c_init(I2C1);
-    if(err != ERR_OK) return err;
-    dma_config_t dma_cfg =
-    {
-        .dma = DMA1,
-        .stream = LL_DMA_STREAM_6,
-        .channel = LL_DMA_CHANNEL_1,
-        .direction = LL_DMA_DIRECTION_MEMORY_TO_PERIPH,
-        .priority = LL_DMA_PRIORITY_LOW,
-    };
-    err = dma_init(&dma_cfg);
-    if(err != ERR_OK) return err;
     uint8_t cmds[] =
     {
         0x00,               // Control byte Co = 0,D/C# = 0. All next bytes are commands
@@ -41,9 +27,9 @@ int ssd1306_init()
         0x2E,               // Deactivate scroll
         0xAF                // Display ON
     };
-    return ssd1306_write_cmds(cmds,sizeof(cmds));
+    return ssd1306_write_cmds(dev,cmds,sizeof(cmds));
 }
-void ssd1306_set_window(uint8_t page_start,uint8_t page_end,uint8_t col_start,uint8_t col_end)
+void ssd1306_set_window(ssd1306_device_t* dev,uint8_t page_start,uint8_t page_end,uint8_t col_start,uint8_t col_end)
 {
     if(col_start > 127) col_start = 127;
     if(col_end > 127) col_end = 127;
@@ -55,70 +41,70 @@ void ssd1306_set_window(uint8_t page_start,uint8_t page_end,uint8_t col_start,ui
         0x21,col_start,col_end,     // reset column start/end addr
         0x22,page_start,page_end    // reset page start/end addr
     };
-    ssd1306_write_cmds(cmds,sizeof(cmds));
+    ssd1306_write_cmds(dev,cmds,sizeof(cmds));
 }
-static void ssd1306_dma_on_complete()
+static void ssd1306_dma_on_complete(void* ctx)
 {
-    i2c_dma_finish(I2C1);
-    is_oled_busy = false;
+    ssd1306_device_t* dev = (ssd1306_device_t*)ctx;
+    i2c_dma_finish(dev->i2c_bus);
+    dev->is_busy = false;
 }
 
-void ssd1306_update()
+void ssd1306_update(ssd1306_device_t* dev)
 {
-    if(is_oled_busy) return;
-    is_oled_busy = true;
+    if(dev->is_busy) return;
+    dev->is_busy = true;
     static uint8_t buf[] = {0x40};
     dma_transfer_t tr_info =
     {
-        .dma = DMA1,
-        .stream = LL_DMA_STREAM_6,
         .prefix_data = buf,
         .prefix_len = 1,
-        .src = (uint32_t)ssd1306_framebuffer,
-        .dst = (uint32_t)&I2C1->DR,
+        .src = (uint32_t)dev->framebuffer,
+        .dst = (uint32_t)&dev->i2c_bus->bus->DR,
         .len = SSD1306_FRAMEBUFFER_SIZE,
-        .on_complete_callback = ssd1306_dma_on_complete
+        .on_tx_complete_callback = ssd1306_dma_on_complete,
+        .ctx = dev
     };
 
-    if(i2c_dma_write(I2C1,SSD1306_ADDR,&tr_info) != ERR_OK)
+    if(i2c_dma_write(dev->i2c_bus,&tr_info) != ERR_OK)
     {
-        is_oled_busy = false;
+        dev->is_busy = false;
     }
 }
-void ssd1306_set_pixel(unsigned x,unsigned y,bool value)
+void ssd1306_set_pixel(ssd1306_device_t* dev,unsigned x,unsigned y,bool value)
 {
     if(x >= SSD1306_WIDTH || y >= SSD1306_HEIGHT) return;
     unsigned byte = x + (y >> 3) * SSD1306_WIDTH;
     uint8_t bit = 1 << (y & 7);
 
     if (value)
-        ssd1306_framebuffer[byte] |= bit;
+        dev->framebuffer[byte] |= bit;
     else
-        ssd1306_framebuffer[byte] &= ~bit;
+        dev->framebuffer[byte] &= ~bit;
 }
-void ssd1306_draw_rect(unsigned x1,unsigned y1,unsigned width,unsigned height)
+void ssd1306_draw_rect(ssd1306_device_t* dev,unsigned x1,unsigned y1,unsigned width,unsigned height)
 {
     for(unsigned x = x1;x < x1 + width;x++)
     {
         for(unsigned y = y1;y < y1 + height;y++)
         {
-            ssd1306_set_pixel(x,y,1);
+            ssd1306_set_pixel(dev,x,y,1);
         }
     }
 }
-void ssd1306_clear(bool value)
+void ssd1306_clear(ssd1306_device_t* dev,bool value)
 {
     uint8_t color = value ? UINT8_MAX : 0;
     for(unsigned i = 0;i < SSD1306_FRAMEBUFFER_SIZE;i++)
     {
-        ssd1306_framebuffer[i] = color;
+        dev->framebuffer[i] = color;
     }
 }
-int ssd1306_write_cmds(const uint8_t* cmds,uint32_t num_cmds)
+int ssd1306_write_cmds(ssd1306_device_t* dev,const uint8_t* cmds,uint32_t num_cmds)
 {
-    return i2c_write(I2C1,SSD1306_ADDR,cmds,num_cmds);
+    return i2c_write(dev->i2c_bus,cmds,num_cmds);
 }
-void ssd1306_draw_bmp(const uint8_t* pixels,unsigned width,unsigned height,unsigned x1,unsigned y1)
+void ssd1306_draw_bmp(ssd1306_device_t* dev,const uint8_t* pixels,unsigned width,unsigned height,unsigned x1,unsigned y1)
 {
     unsigned total_size = width * height / 8;
     uint8_t bitmask;
@@ -128,7 +114,7 @@ void ssd1306_draw_bmp(const uint8_t* pixels,unsigned width,unsigned height,unsig
         for(uint8_t bit = 0;bit < 8;bit++)
         {
             bitmask = 0b10000000 >> bit;
-            ssd1306_set_pixel(curx,cury,pixels[i] & bitmask);
+            ssd1306_set_pixel(dev,curx,cury,pixels[i] & bitmask);
             curx++;
             if(curx - x1 == width)
             {
@@ -139,7 +125,7 @@ void ssd1306_draw_bmp(const uint8_t* pixels,unsigned width,unsigned height,unsig
         }
     }
 }
-void ssd1306_draw_text(const char* txt,unsigned x1,unsigned y1)
+void ssd1306_draw_text(ssd1306_device_t* dev,const char* txt,unsigned x1,unsigned y1)
 {
     unsigned curx = x1,cury = y1;
     const unsigned fwidth = FONT_BWIDTH * 8;
@@ -158,7 +144,7 @@ void ssd1306_draw_text(const char* txt,unsigned x1,unsigned y1)
             ++txt;
             continue;
         }
-        ssd1306_draw_bmp(FONT[*txt - ' '],fwidth,FONT_HEIGHT,curx,cury);
+        ssd1306_draw_bmp(dev,FONT[*txt - ' '],fwidth,FONT_HEIGHT,curx,cury);
         curx += fwidth;
         ++txt;
     }

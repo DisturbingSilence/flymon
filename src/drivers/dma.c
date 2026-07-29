@@ -1,11 +1,16 @@
 #include "dma.h"
 #include "err.h"
 #include "stm32f4xx_ll_bus.h"
+#include <drivers/systime.h>
 
-static dma_callback_t dma1_callbacks[8] = {};
-int dma_init(const dma_config_t* cfg)
+static dma_callback_t dma1_tx_callbacks[8] = {};
+static void* dma1_context_ptrs[8] = {};
+
+int dma_init(dma_channel_t* channel,const dma_config_t* cfg)
 {
-    if(!cfg) return ERR_INV_ARG;
+    if(!(cfg && channel)) return ERR_INV_ARG;
+    channel->instance = cfg->dma;
+    channel->stream = cfg->stream;
     if(cfg->dma == DMA1)
     {
         LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_DMA1);
@@ -48,25 +53,22 @@ void DMA1_Stream6_IRQHandler()
     if(LL_DMA_IsActiveFlag_TC6(DMA1))
     {
         LL_DMA_ClearFlag_TC6(DMA1);
-        if(dma1_callbacks[6]) dma1_callbacks[6]();
+        if(dma1_tx_callbacks[6]) dma1_tx_callbacks[6](dma1_context_ptrs[6]);
     }
 }
-void dma_set_callback(uint32_t stream,dma_callback_t clbck)
+void dma_set_callback(dma_channel_t* channel,dma_callback_t clbck,void* ctx)
 {
-    if(stream >= 0 && stream <= 7)
-    {
-        dma1_callbacks[stream] = clbck;
-    }
+    if(!(channel && clbck)) return;
+    if(channel->stream > 7) return;
+
+    dma1_tx_callbacks[channel->stream] = clbck;
+    dma1_context_ptrs[channel->stream] = ctx;
 }
-int dma_start(DMA_TypeDef* dma,uint32_t stream,uint32_t src,uint32_t dst,uint32_t len)
+int dma_start(dma_channel_t* channel,uint32_t src,uint32_t dst,uint32_t len)
 {
-    LL_DMA_DisableStream(dma,stream);
-    uint32_t timeout = 500000;
-    while (LL_DMA_IsEnabledStream(dma,stream))
-    {
-        if(--timeout == 0) return ERR_TIMEOUT;
-    }
-    if (dma == DMA1 && stream == LL_DMA_STREAM_6)
+    LL_DMA_DisableStream(channel->instance,channel->stream);
+    WAIT_TIMEOUT(LL_DMA_IsEnabledStream(channel->instance,channel->stream),channel->timeout);
+    if (channel->instance == DMA1 && channel->stream == LL_DMA_STREAM_6)
     {
         LL_DMA_ClearFlag_TC6(DMA1);
         LL_DMA_ClearFlag_HT6(DMA1);
@@ -74,10 +76,10 @@ int dma_start(DMA_TypeDef* dma,uint32_t stream,uint32_t src,uint32_t dst,uint32_
         LL_DMA_ClearFlag_DME6(DMA1);
         LL_DMA_ClearFlag_FE6(DMA1);
     }
-    LL_DMA_SetPeriphAddress(dma,stream,dst);
-    LL_DMA_SetMemoryAddress(dma,stream,src);
+    LL_DMA_SetPeriphAddress(channel->instance,channel->stream,dst);
+    LL_DMA_SetMemoryAddress(channel->instance,channel->stream,src);
 
-    LL_DMA_SetDataLength(dma,stream,len);
-    LL_DMA_EnableStream(dma,stream);
+    LL_DMA_SetDataLength(channel->instance,channel->stream,len);
+    LL_DMA_EnableStream(channel->instance,channel->stream);
     return ERR_OK;
 }
