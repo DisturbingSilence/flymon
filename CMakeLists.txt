@@ -32,7 +32,8 @@ set(DRIVER_SOURCES
   ${DRV_P}/syscalls.c
   ${DRV_P}/systime.c
   ${DRV_P}/spi.c
-  ${DRV_P}/w25qxx.c)
+  ${DRV_P}/w25qxx.c
+  ${DRV_P}/mpu60x0.c)
 set(SERVICE_SOURCES
   ${SRV_P}/font.c
   ${SRV_P}/scheduler.c)
@@ -43,7 +44,7 @@ add_executable(main
   ${SERVICE_SOURCES})
 set_target_properties(main PROPERTIES SUFFIX ".elf")
 target_link_libraries(main PRIVATE stm32f4_drivers)
-target_compile_options(main PRIVATE -O0 -g3 -Wall -mcpu=cortex-m4 -mthumb -ggdb)
+target_compile_options(main PRIVATE -O0 -g3 -Wall -mcpu=cortex-m4 -mthumb -ggdb -Wall -pedantic)
 target_include_directories(main PRIVATE src)
 target_link_options(main PRIVATE -T ${CMAKE_SOURCE_DIR}/linkerscript.ld -mcpu=cortex-m4 -mthumb -nostartfiles --specs=nano.specs --specs=nosys.specs)
 target_compile_definitions(stm32f4_drivers PUBLIC USE_FULL_LL_DRIVER STM32F411xE)

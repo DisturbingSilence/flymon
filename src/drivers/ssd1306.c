@@ -7,6 +7,7 @@
 #include <drivers/err.h>
 int ssd1306_init(ssd1306_device_t* dev)
 {
+    if(!dev) return ERR_INV_ARG;
     uint8_t cmds[] =
     {
         0x00,               // Control byte Co = 0,D/C# = 0. All next bytes are commands
@@ -46,7 +47,7 @@ void ssd1306_set_window(ssd1306_device_t* dev,uint8_t page_start,uint8_t page_en
 static void ssd1306_dma_on_complete(void* ctx)
 {
     ssd1306_device_t* dev = (ssd1306_device_t*)ctx;
-    i2c_dma_finish(dev->i2c_bus);
+    i2c_dma_finish(&dev->i2c_bus);
     dev->is_busy = false;
 }
 
@@ -60,13 +61,13 @@ void ssd1306_update(ssd1306_device_t* dev)
         .prefix_data = buf,
         .prefix_len = 1,
         .src = (uint32_t)dev->framebuffer,
-        .dst = (uint32_t)&dev->i2c_bus->bus->DR,
+        .dst = (uint32_t)&dev->i2c_bus.bus->instance->DR,
         .len = SSD1306_FRAMEBUFFER_SIZE,
         .on_tx_complete_callback = ssd1306_dma_on_complete,
         .ctx = dev
     };
 
-    if(i2c_dma_write(dev->i2c_bus,&tr_info) != ERR_OK)
+    if(i2c_dma_write(&dev->i2c_bus,&tr_info) != ERR_OK)
     {
         dev->is_busy = false;
     }
@@ -102,7 +103,7 @@ void ssd1306_clear(ssd1306_device_t* dev,bool value)
 }
 int ssd1306_write_cmds(ssd1306_device_t* dev,const uint8_t* cmds,uint32_t num_cmds)
 {
-    return i2c_write(dev->i2c_bus,cmds,num_cmds);
+    return i2c_write(&dev->i2c_bus,cmds,num_cmds);
 }
 void ssd1306_draw_bmp(ssd1306_device_t* dev,const uint8_t* pixels,unsigned width,unsigned height,unsigned x1,unsigned y1)
 {

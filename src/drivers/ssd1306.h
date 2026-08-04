@@ -10,7 +10,7 @@
 
 typedef struct
 {
-    i2c_bus_t* i2c_bus;
+    i2c_device_t i2c_bus;
     uint8_t framebuffer[SSD1306_FRAMEBUFFER_SIZE];
     bool is_busy;
 } ssd1306_device_t;

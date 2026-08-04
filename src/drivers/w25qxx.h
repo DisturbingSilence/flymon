@@ -1,7 +1,7 @@
 #pragma once
 #include <stdint.h>
 
-#include "stm32f4xx_ll_spi.h"
+#include <drivers/spi.h>
 #include "stm32f4xx_ll_gpio.h"
 
 #define PAGE_SIZE 256
@@ -22,7 +22,7 @@ typedef struct
 {
     GPIO_TypeDef* cs_port;
     uint32_t cs_pinmask;
-    SPI_TypeDef* spix;
+    spi_bus_t* spi_bus;
 
     uint8_t manufacturer_id;
     uint8_t memory_type;
@@ -31,9 +31,9 @@ typedef struct
     uint32_t pages;
     uint32_t sectors;
     uint32_t blocks;
-
 } w25qxx_flash_t;
-int w25qxx_init(GPIO_TypeDef* cs_port,uint32_t pinmask,SPI_TypeDef* spix,w25qxx_flash_t* flash);
+
+int w25qxx_init(GPIO_TypeDef* cs_port,uint32_t pinmask,spi_bus_t* spi_bus,w25qxx_flash_t* flash);
 int w25qxx_read_jedec_id(w25qxx_flash_t* flash,uint8_t* manufacturer_id,uint8_t* memory_type,uint8_t* capacity);
 int w25qxx_write_enable(w25qxx_flash_t* flash);
 int w25qxx_write_disable(w25qxx_flash_t* flash);

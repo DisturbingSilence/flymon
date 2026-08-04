@@ -2,7 +2,7 @@
 
 static task_t task_table[SCHEDULER_MAX_TASKS] = {};
 static uint8_t table_index = 0;
-sch_error_t scheduler_add_task(taskentryp_t entry,systime_t period)
+sch_error_t scheduler_add_task(taskentryp_t entry,systime_t period,void* context)
 {
     if(table_index >= SCHEDULER_MAX_TASKS) return SCHEDULER_TOO_MANY_TASKS;
     task_table[table_index++] =
@@ -10,7 +10,8 @@ sch_error_t scheduler_add_task(taskentryp_t entry,systime_t period)
     {
         .entry = entry,
         .period = period,
-        .last_run = 0
+        .last_run = 0,
+        .ctx = context
     };
     return SCHEDULER_OK;
 }
@@ -25,7 +26,7 @@ void scheduler_run()
             if(stime - task->last_run >= task->period)
             {
                 task->last_run = stime;
-                task->entry();
+                task->entry(task->ctx);
             }
         }
     }

@@ -11,15 +11,14 @@ static void spi_cs_deselect(w25qxx_flash_t* flash)
 {
     LL_GPIO_SetOutputPin(flash->cs_port,flash->cs_pinmask);
 }
-int w25qxx_init(GPIO_TypeDef* cs_port,uint32_t cs_pinmask,SPI_TypeDef* spix,w25qxx_flash_t* flash)
+int w25qxx_init(GPIO_TypeDef* cs_port,uint32_t cs_pinmask,spi_bus_t* spi_bus,w25qxx_flash_t* flash)
 {
-    if(!(flash && spix && cs_port && cs_pinmask)) return ERR_INV_ARG;
-    RET_ERR(spi_init(spix));
+    if(!(flash && spi_bus && cs_port && cs_pinmask)) return ERR_INV_ARG;
 
     *flash = (w25qxx_flash_t){
         .cs_port = cs_port,
         .cs_pinmask = cs_pinmask,
-        .spix = spix,
+        .spi_bus = spi_bus,
     };
     RET_ERR(w25qxx_read_jedec_id(flash,&flash->manufacturer_id,&flash->memory_type,&flash->capacity));
     uint64_t total_bytes = 1ULL << flash->capacity;
@@ -35,7 +34,7 @@ int w25qxx_read_jedec_id(w25qxx_flash_t* flash,uint8_t* manufacturer_id,uint8_t*
     uint8_t tx_buf[4] = {0x9F,0x00,0x00,0x00};
     uint8_t rx_buf[4] = {0};
     spi_cs_select(flash);
-    int status = spi_transfer(flash->spix,tx_buf,rx_buf,4);
+    int status = spi_transfer(flash->spi_bus,tx_buf,rx_buf,4);
     spi_cs_deselect(flash);
     if (status == ERR_OK)
     {
@@ -49,7 +48,7 @@ int w25qxx_write_enable(w25qxx_flash_t* flash)
 {
     uint8_t cmds[1] = {0x06};
     spi_cs_select(flash);
-    int status = spi_write(flash->spix,cmds,1);
+    int status = spi_write(flash->spi_bus,cmds,1);
     spi_cs_deselect(flash);
     return status;
 }
@@ -57,7 +56,7 @@ int w25qxx_write_disable(w25qxx_flash_t* flash)
 {
     uint8_t cmds[1] = {0x04};
     spi_cs_select(flash);
-    int status = spi_write(flash->spix,cmds,1);
+    int status = spi_write(flash->spi_bus,cmds,1);
     spi_cs_deselect(flash);
     return status;
 }
@@ -66,7 +65,7 @@ int w25qxx_read_streg1(w25qxx_flash_t* flash,uint8_t* s1)
     uint8_t tx_buf[2] = {0x05,0x00};
     uint8_t rx_buf[2] = {0};
     spi_cs_select(flash);
-    int status = spi_transfer(flash->spix,tx_buf,rx_buf,2);
+    int status = spi_transfer(flash->spi_bus,tx_buf,rx_buf,2);
     if(s1) *s1 = rx_buf[1];
     spi_cs_deselect(flash);
     return status;
@@ -97,7 +96,7 @@ int w25qxx_erase_sector(w25qxx_flash_t* flash,uint16_t sector)
     };
     RET_ERR(w25qxx_write_enable(flash));
     spi_cs_select(flash);
-    int status = spi_write(flash->spix,tx_buf,4);
+    int status = spi_write(flash->spi_bus,tx_buf,4);
     spi_cs_deselect(flash);
     WAIT_TIMEOUT(w25qxx_is_busy(flash),400);
     return status;
@@ -132,7 +131,7 @@ int w25qxx_write(w25qxx_flash_t* flash,uint32_t page,uint32_t offs,const uint8_t
 			tx_data[index++] = data[i + data_pos];
 		}
 		spi_cs_select(flash);
-		int status = spi_write(flash->spix,tx_data,bytes_to_send);
+		int status = spi_write(flash->spi_bus,tx_data,bytes_to_send);
 		spi_cs_deselect(flash);
 		RET_ERR(status);
 
@@ -161,7 +160,7 @@ int w25qxx_read(w25qxx_flash_t* flash,uint32_t page,uint32_t offs,uint8_t* data,
         (addr >> 0)  & 0xFF,
     };
     spi_cs_select(flash);
-    int status = spi_write(flash->spix,tx_data,4);
+    int status = spi_write(flash->spi_bus,tx_data,4);
     if(status != ERR_OK)
     {
         spi_cs_deselect(flash);
@@ -169,7 +168,7 @@ int w25qxx_read(w25qxx_flash_t* flash,uint32_t page,uint32_t offs,uint8_t* data,
     }
     for (uint32_t i = 0; i < len; i++)
     {
-        spi_read(flash->spix,&data[i],1);
+        spi_read(flash->spi_bus,&data[i],1);
     }
     spi_cs_deselect(flash);
     return ERR_OK;

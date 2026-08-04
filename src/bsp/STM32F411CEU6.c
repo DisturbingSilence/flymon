@@ -19,7 +19,7 @@ int board_init_i2c1_pins()
     LL_GPIO_InitTypeDef gpio_cfg = {};
     gpio_cfg.Pin = LL_GPIO_PIN_8 | LL_GPIO_PIN_9;
     gpio_cfg.Speed = LL_GPIO_SPEED_FREQ_LOW;
-    gpio_cfg.Pull = LL_GPIO_PULL_UP;
+    gpio_cfg.Pull = LL_GPIO_PULL_NO;
     gpio_cfg.Mode = LL_GPIO_MODE_ALTERNATE;
     gpio_cfg.OutputType = LL_GPIO_OUTPUT_OPENDRAIN;
     gpio_cfg.Alternate = LL_GPIO_AF_4;
@@ -51,4 +51,14 @@ int board_init_spi2_pins()
     gpio_cfg.Mode = LL_GPIO_MODE_OUTPUT;
     gpio_cfg.Pull = LL_GPIO_PULL_UP;
     return LL_GPIO_Init(GPIOB,&gpio_cfg) == SUCCESS && err == SUCCESS;
+}
+int board_init_button_input_pins()
+{
+    LL_GPIO_InitTypeDef gpio_cfg = {};
+    gpio_cfg.Pin = LL_GPIO_PIN_0;
+    gpio_cfg.Mode = LL_GPIO_MODE_ANALOG;
+    gpio_cfg.Pull = LL_GPIO_PULL_NO;
+    gpio_cfg.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+    gpio_cfg.Speed = LL_GPIO_SPEED_FREQ_LOW;
+    return LL_GPIO_Init(GPIOB,&gpio_cfg);
 }

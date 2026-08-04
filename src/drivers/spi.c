@@ -5,15 +5,15 @@
 #include "systime.h"
 #include "err.h"
 
-int spi_init(SPI_TypeDef* spix)
+int spi_init(spi_bus_t* bus)
 {
-    if(!spix) return ERR_INV_ARG;
+    if(!bus) return ERR_INV_ARG;
 
-    if(spix == SPI1)
+    if(bus->bus == SPI1)
         LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_SPI1);
-    else if(spix == SPI2)
+    else if(bus->bus == SPI2)
         LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_SPI2);
-    else if(spix == SPI3)
+    else if(bus->bus == SPI3)
         LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_SPI3);
     else
         return ERR_INV_ARG;
@@ -31,35 +31,36 @@ int spi_init(SPI_TypeDef* spix)
         .CRCCalculation = LL_SPI_CRCCALCULATION_DISABLE,
         .CRCPoly = 7
     };
-    if(LL_SPI_Init(spix,&spi_cfg) != SUCCESS)
+    if(LL_SPI_Init(bus->bus,&spi_cfg) != SUCCESS)
     {
         return ERR_INIT_FAILURE;
     }
-    LL_SPI_Enable(spix);
+    LL_SPI_Enable(bus->bus);
     return ERR_OK;
 }
 
-int spi_transfer(SPI_TypeDef* spix,const uint8_t* tx,uint8_t* rx,uint32_t len)
+int spi_transfer(spi_bus_t* bus,const uint8_t* tx,uint8_t* rx,uint32_t len)
 {
-    if (!spix) return ERR_INV_ARG;
+    if (!bus) return ERR_INV_ARG;
     if (len == 0) return ERR_OK;
+    if(!(rx && tx)) return ERR_INV_ARG;
     while(len--)
     {
-         WAIT_TIMEOUT(!LL_SPI_IsActiveFlag_TXE(spix),SPI_TIMEOUT);
-         LL_SPI_TransmitData8(spix,tx ? *tx++ : 0xFF);
-         WAIT_TIMEOUT(!LL_SPI_IsActiveFlag_RXNE(spix),SPI_TIMEOUT);
-         uint8_t rx_byte = LL_SPI_ReceiveData8(spix);
+         WAIT_TIMEOUT(!LL_SPI_IsActiveFlag_TXE(bus->bus),bus->timeout);
+         LL_SPI_TransmitData8(bus->bus,tx ? *tx++ : 0xFF);
+         WAIT_TIMEOUT(!LL_SPI_IsActiveFlag_RXNE(bus->bus),bus->timeout);
+         uint8_t rx_byte = LL_SPI_ReceiveData8(bus->bus);
          if (rx) *rx++ = rx_byte;
     }
-    WAIT_TIMEOUT(!LL_SPI_IsActiveFlag_TXE(spix),SPI_TIMEOUT);
-    WAIT_TIMEOUT(LL_SPI_IsActiveFlag_BSY(spix),SPI_TIMEOUT);
+    WAIT_TIMEOUT(!LL_SPI_IsActiveFlag_TXE(bus->bus),bus->timeout);
+    WAIT_TIMEOUT(LL_SPI_IsActiveFlag_BSY(bus->bus),bus->timeout);
     return ERR_OK;
 }
-int spi_read(SPI_TypeDef* spix,uint8_t* rx,uint32_t len)
+int spi_read(spi_bus_t* bus,uint8_t* rx,uint32_t len)
 {
-    return spi_transfer(spix,0,rx,len);
+    return spi_transfer(bus,0,rx,len);
 }
-int spi_write(SPI_TypeDef* spix,const uint8_t* tx,uint32_t len)
+int spi_write(spi_bus_t* bus,const uint8_t* tx,uint32_t len)
 {
-    return spi_transfer(spix,tx,0,len);
+    return spi_transfer(bus,tx,0,len);
 }
