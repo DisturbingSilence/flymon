@@ -2,7 +2,7 @@
 #include "err.h"
 #include "stm32f4xx_ll_bus.h"
 #include <drivers/systime.h>
-
+#include "core_cm4.h"
 static dma_callback_t dma1_tx_callbacks[8] = {};
 static void* dma1_context_ptrs[8] = {};
 

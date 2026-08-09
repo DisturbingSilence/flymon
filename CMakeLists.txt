@@ -36,7 +36,8 @@ set(DRIVER_SOURCES
   ${DRV_P}/mpu60x0.c)
 set(SERVICE_SOURCES
   ${SRV_P}/font.c
-  ${SRV_P}/scheduler.c)
+  ${SRV_P}/scheduler.c
+  ${SRV_P}/buttons.c)
 add_executable(main
   src/app/main.c
   ${BSP_SOURCES}

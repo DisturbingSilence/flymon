@@ -60,5 +60,5 @@ int board_init_button_input_pins()
     gpio_cfg.Pull = LL_GPIO_PULL_NO;
     gpio_cfg.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
     gpio_cfg.Speed = LL_GPIO_SPEED_FREQ_LOW;
-    return LL_GPIO_Init(GPIOB,&gpio_cfg);
+    return LL_GPIO_Init(GPIOB,&gpio_cfg) == SUCCESS;
 }

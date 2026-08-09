@@ -37,6 +37,7 @@ set(LL_SOURCES
     #${hal_SOURCE_DIR}/Src/stm32f4xx_ll_pwr.c
     ${hal_SOURCE_DIR}/Src/stm32f4xx_ll_tim.c
     #${hal_SOURCE_DIR}/Src/stm32f4xx_ll_exti.c
+    ${hal_SOURCE_DIR}/Src/stm32f4xx_ll_adc.c
 )
 add_library(stm32f4_drivers STATIC ${LL_SOURCES} ${CMSIS_SOURCES})
 target_include_directories(stm32f4_drivers PUBLIC

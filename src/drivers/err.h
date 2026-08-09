@@ -8,7 +8,10 @@ enum
     ERR_BUSY,
     ERR_INV_ARG,
     ERR_INV_DEVICE,
-    ERR_IO
+    ERR_IO,
+
+    ERR_SCHEDULER_TOO_MANY_TASKS,
+
 };
 #define PANIC(err) do { \
     int _err = (err);   \
