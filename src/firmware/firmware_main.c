@@ -1,23 +1,22 @@
-#include <bsp/STM32F411CEU6.h>
-
-#include <app/config.h>
-
-#include <drivers/ssd1306.h>
-#include <drivers/i2c.h>
-#include <drivers/w25qxx.h>
-#include <drivers/mpu60x0.h>
+#include <drivers/devices/ssd1306.h>
+#include <drivers/devices/w25qxx.h>
+#include <drivers/devices/mpu60x0.h>
+#include <drivers/devices/ble.h>
+#include <drivers/peripherals/usart.h>
+#include <drivers/peripherals/i2c.h>
 #include <drivers/err.h>
-#include <drivers/usart.h>
-#include <drivers/ble.h>
 
 #include <services/scheduler.h>
 #include <services/buttons.h>
-#include <services/ui.h>
 #include <services/font.h>
+#include <services/ui.h>
+
+#include <bsp/STM32F411CEU6.h>
+
+#include <../config.h>
+
 #include <stdio.h>
-
 #include <string.h>
-
 #include "stm32f4xx_ll_gpio.h"
 
 #define USART1_RX_BUFFER_SIZE 1024
@@ -161,7 +160,13 @@ static void init_peripherals(global_context_t* ctx)
     PANIC(ssd1306_init(&ctx->oled));
     sleep(10);
 
-    PANIC(ble_init(&ctx->ble,&ctx->usart1,GPIOB,LL_GPIO_PIN_5));
+    ble_config_t ble_cfg =
+    {
+        .usart_bus = &ctx->usart1,
+        .pwrc_port = GPIOB,
+        .pwrc_pinmask = LL_GPIO_PIN_5
+    };
+    PANIC(ble_init(&ctx->ble,&ble_cfg));
     sleep(10);
     /*PANIC(mpu60x0_init(mpu));
     PANIC(mpu60x0_set_sample_rate(mpu,1000));
@@ -208,6 +213,13 @@ void ui_on_button_pressed(void* app_context,button_t btn)
     else if(btn == BUTTON_RIGHT)
     {
         if(state < UI_STATE_COUNT) state++;
+    }
+    else if(btn == BUTTON_SELECT)
+    {
+        static int counter = 0;
+        char buf[40];
+        sprintf(buf,"counter is %d",counter);
+        ble_write(&ctx->ble,(uint8_t*)buf,strlen(buf));
     }
     ui_set_state(&ctx->ui_ctx,state);
     /*global_context_t* ctx = (global_context_t*)app_context;

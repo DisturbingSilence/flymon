@@ -1,7 +1,8 @@
 #pragma once
+#include <drivers/peripherals/spi.h>
+
 #include <stdint.h>
 
-#include <drivers/spi.h>
 #include "stm32f4xx_ll_gpio.h"
 
 #define PAGE_SIZE 256

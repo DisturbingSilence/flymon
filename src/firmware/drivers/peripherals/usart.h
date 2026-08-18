@@ -1,7 +1,9 @@
 #pragma once
-#include <stdint.h>
+#include <drivers/peripherals/dma.h>
 #include <drivers/ringbuffer.h>
-#include <drivers/dma.h>
+
+#include <stdint.h>
+
 #include "stm32f4xx_ll_usart.h"
 
 typedef struct

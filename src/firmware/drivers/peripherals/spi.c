@@ -1,6 +1,6 @@
-#include <drivers/err.h>
-#include <drivers/spi.h>
+#include <drivers/peripherals/spi.h>
 #include <drivers/systime.h>
+#include <drivers/err.h>
 
 #include "stm32f4xx_ll_gpio.h"
 #include "stm32f4xx_ll_bus.h"

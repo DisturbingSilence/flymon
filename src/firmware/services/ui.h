@@ -1,5 +1,5 @@
 #pragma once
-#include <drivers/ssd1306.h>
+#include <drivers/devices/ssd1306.h>
 #include <services/buttons.h>
 
 typedef enum

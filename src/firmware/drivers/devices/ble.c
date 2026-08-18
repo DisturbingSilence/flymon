@@ -1,7 +1,9 @@
-#include <drivers/ble.h>
-#include <drivers/err.h>
+#include <drivers/devices/ble.h>
 #include <drivers/systime.h>
+#include <drivers/err.h>
+
 #include <string.h>
+
 static inline void pwrc_select(ble_device_t* dev)
 {
     LL_GPIO_ResetOutputPin(dev->pwrc_port,dev->pwrc_pinmask);
@@ -9,36 +11,6 @@ static inline void pwrc_select(ble_device_t* dev)
 static inline void pwrc_deselect(ble_device_t* dev)
 {
     LL_GPIO_SetOutputPin(dev->pwrc_port,dev->pwrc_pinmask);
-}
-static int query_name(ble_device_t* dev,uint8_t* buf,uint32_t bufsize)
-{
-    const uint8_t at_name[] = "AT+NAME\r\n";
-    pwrc_select(dev);
-    int err = usart_write(dev->usart_bus,at_name,sizeof(at_name) - 1);
-    pwrc_deselect(dev);
-    if(err != ERR_OK) return err;
-    WAIT_TIMEOUT(usart_has_full_command(dev->usart_bus) != ERR_OK,500);
-    uint32_t avail = usart_available(dev->usart_bus);
-    if(avail == 0) return ERR_EMPTY;
-    memset(dev->buf,0,bufsize);
-    if(avail > bufsize - 1) avail = bufsize - 1;
-    err = usart_read(dev->usart_bus,buf,avail);
-    return err;
-}
-static int query_version(ble_device_t* dev,uint8_t* buf,uint32_t bufsize)
-{
-    const uint8_t at_ver[] = "AT+VER\r\n";
-    pwrc_select(dev);
-    int err = usart_write(dev->usart_bus,at_ver,sizeof(at_ver) - 1);
-    pwrc_deselect(dev);
-    if(err != ERR_OK) return err;
-    WAIT_TIMEOUT(usart_has_full_command(dev->usart_bus) != ERR_OK,500);
-    uint32_t avail = usart_available(dev->usart_bus);
-    if(avail == 0) return ERR_EMPTY;
-    memset(dev->buf,0,bufsize);
-    if(avail > bufsize - 1) avail = bufsize - 1;
-    err = usart_read(dev->usart_bus,buf,avail);
-    return err;
 }
 static int usart_has_full_command(usart_bus_t* bus)
 {
@@ -53,6 +25,37 @@ static int usart_has_full_command(usart_bus_t* bus)
     }
     return ERR_INCOMPLETE;
 }
+static int query_name(ble_device_t* dev,uint8_t* buf,uint32_t bufsize)
+{
+    const uint8_t at_name[] = "AT+NAME\r\n";
+    pwrc_select(dev);
+    int err = usart_write(dev->usart_bus,at_name,sizeof(at_name) - 1);
+    pwrc_deselect(dev);
+    if(err != ERR_OK) return err;
+    WAIT_TIMEOUT(usart_has_full_command(dev->usart_bus) != ERR_OK,500);
+    uint32_t avail = usart_available(dev->usart_bus);
+    if(avail == 0) return ERR_EMPTY;
+    memset(buf,0,bufsize);
+    if(avail > bufsize - 1) avail = bufsize - 1;
+    err = usart_read(dev->usart_bus,buf,avail);
+    return err;
+}
+static int query_version(ble_device_t* dev,uint8_t* buf,uint32_t bufsize)
+{
+    const uint8_t at_ver[] = "AT+VER\r\n";
+    pwrc_select(dev);
+    int err = usart_write(dev->usart_bus,at_ver,sizeof(at_ver) - 1);
+    pwrc_deselect(dev);
+    if(err != ERR_OK) return err;
+    WAIT_TIMEOUT(usart_has_full_command(dev->usart_bus) != ERR_OK,500);
+    uint32_t avail = usart_available(dev->usart_bus);
+    if(avail == 0) return ERR_EMPTY;
+    memset(buf,0,bufsize);
+    if(avail > bufsize - 1) avail = bufsize - 1;
+    err = usart_read(dev->usart_bus,buf,avail);
+    return err;
+}
+
 int ble_init(ble_device_t* dev,const ble_config_t* cfg)
 {
     if (!(dev && cfg)) return ERR_INV_ARG;

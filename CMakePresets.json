@@ -1,0 +1,52 @@
+{
+    "version": 6,
+    "configurePresets": [
+        {
+            "name": "x64",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/desktop_app",
+            "cacheVariables": {
+                "TARGET_PLATFORM": "x64"
+            }
+        },
+        {
+            "name": "stm32",
+            "hidden": true,
+            "generator": "Ninja",
+            "toolchainFile": "${sourceDir}/cmake/arm_none_eabi.cmake",
+            "cacheVariables": {
+                "TARGET_PLATFORM": "stm32"
+            }
+        },
+        {
+            "name": "stm32-debug",
+            "inherits": "stm32",
+            "binaryDir": "${sourceDir}/build/firmware_debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "stm32-release",
+            "inherits": "stm32",
+            "binaryDir": "${sourceDir}/build/firmware_release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "x64",
+            "configurePreset": "x64"
+        },
+        {
+            "name": "stm32-debug",
+            "configurePreset": "stm32-debug"
+        },
+        {
+            "name": "stm32-release",
+            "configurePreset": "stm32-release"
+        }
+    ]
+}

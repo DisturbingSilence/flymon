@@ -1,6 +1,6 @@
-#include <drivers/dma.h>
-#include <drivers/err.h>
+#include <drivers/peripherals/dma.h>
 #include <drivers/systime.h>
+#include <drivers/err.h>
 
 #include "core_cm4.h"
 #include "stm32f4xx_ll_bus.h"

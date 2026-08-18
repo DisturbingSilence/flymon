@@ -1,6 +1,8 @@
 #pragma once
+#include <drivers/peripherals/usart.h>
+
 #include <stdint.h>
-#include <drivers/usart.h>
+
 #include "stm32f4xx_ll_gpio.h"
 typedef struct
 {
@@ -13,7 +15,7 @@ typedef struct
 
 typedef struct
 {
-    usart_bus_t* bus;
+    usart_bus_t* usart_bus;
     GPIO_TypeDef* pwrc_port;
     uint32_t pwrc_pinmask;
 } ble_config_t;

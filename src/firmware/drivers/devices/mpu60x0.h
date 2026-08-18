@@ -1,6 +1,6 @@
 #pragma once
+#include <drivers/peripherals/i2c.h>
 
-#include <drivers/i2c.h>
 #define MPU60X0_I2C_ADDR 0xD0
 
 #define MPU60X0_REG_PWR_MGMGT_1 0x6B

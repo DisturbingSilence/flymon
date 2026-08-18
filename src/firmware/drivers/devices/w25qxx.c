@@ -1,7 +1,7 @@
-#include "w25qxx.h"
-#include "spi.h"
-#include "err.h"
-#include "systime.h"
+#include <drivers/devices/w25qxx.h>
+#include <drivers/peripherals/spi.h>
+#include <drivers/systime.h>
+#include <drivers/err.h>
 
 static void spi_cs_select(w25qxx_flash_t* flash)
 {

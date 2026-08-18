@@ -1,6 +1,7 @@
-#include <drivers/i2c.h>
+#include <drivers/peripherals/i2c.h>
 #include <drivers/err.h>
 #include <drivers/systime.h>
+
 #include "stm32f4xx_ll_bus.h"
 
 static inline void __i2c_wait_stop(i2c_bus_t* bus)

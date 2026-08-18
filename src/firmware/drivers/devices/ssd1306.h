@@ -1,7 +1,9 @@
 #pragma once
+#include <drivers/peripherals/i2c.h>
+
 #include <stdbool.h>
 #include <stdint.h>
-#include <drivers/i2c.h>
+
 #define SSD1306_I2C_ADDR 0x78
 #define SSD1306_WIDTH 128
 #define SSD1306_HEIGHT 64

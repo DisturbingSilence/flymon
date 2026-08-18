@@ -1,6 +1,8 @@
 #pragma once
+#include <drivers/peripherals/dma.h>
+
 #include <stdint.h>
-#include <drivers/dma.h>
+
 #include "stm32f4xx_ll_i2c.h"
 
 typedef void(*dma_callback_t)(void*);

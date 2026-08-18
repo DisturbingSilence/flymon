@@ -1,7 +1,7 @@
-#include <drivers/usart.h>
-#include <drivers/err.h>
-#include <drivers/systime.h>
+#include <drivers/peripherals/usart.h>
 #include <drivers/ringbuffer.h>
+#include <drivers/systime.h>
+#include <drivers/err.h>
 
 #include "stm32f4xx_ll_bus.h"
 static void usart_tx_dma_complete(void *ctx);

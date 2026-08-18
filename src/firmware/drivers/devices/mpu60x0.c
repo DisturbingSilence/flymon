@@ -1,4 +1,4 @@
-#include <drivers/mpu60x0.h>
+#include <drivers/devices/mpu60x0.h>
 #include <drivers/err.h>
 
 int mpu60x0_init(mpu60x0_t* mpu)

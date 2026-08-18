@@ -1,4 +1,3 @@
 build
-broken
 docs
-src/app/config.h
+config.h

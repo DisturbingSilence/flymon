@@ -1,7 +1,9 @@
-#include <drivers/ssd1306.h>
-#include <services/font.h>
-#include <drivers/dma.h>
+#include <drivers/devices/ssd1306.h>
+#include <drivers/peripherals/dma.h>
 #include <drivers/err.h>
+
+#include <services/font.h>
+
 int ssd1306_init(ssd1306_device_t* dev)
 {
     if(!dev) return ERR_INV_ARG;

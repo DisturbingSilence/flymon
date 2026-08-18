@@ -1,4 +1,4 @@
-#include "scheduler.h"
+#include <services/scheduler.h>
 #include <drivers/err.h>
 
 static task_t task_table[SCHEDULER_MAX_TASKS] = {};
