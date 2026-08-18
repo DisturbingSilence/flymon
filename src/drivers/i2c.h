@@ -22,7 +22,6 @@ typedef struct
     I2C_TypeDef* instance;
 
     uint32_t timeout;
-    uint32_t clock_speed;
     dma_channel_t* tx_dma; //optional
 } i2c_bus_t;
 
@@ -32,7 +31,7 @@ typedef struct
     uint8_t address;
 } i2c_device_t;
 
-int i2c_init(i2c_bus_t* dev);
+int i2c_init(i2c_bus_t* dev,uint32_t clock_speed);
 
 int i2c_write_bytes(i2c_device_t* dev,const uint8_t* buf,uint32_t len);
 int i2c_read_bytes(i2c_device_t* dev,uint8_t* buf,uint32_t len);

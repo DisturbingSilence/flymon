@@ -16,19 +16,6 @@ int buttons_init(button_callback_t clbck,void* ctx)
 {
     if(!(clbck && ctx)) return ERR_INV_ARG;
     int err;
-    /*LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_SYSCFG);
-    LL_SYSCFG_SetEXTISource(LL_SYSCFG_EXTI_PORTB,LL_SYSCFG_EXTI_LINE0);
-    LL_EXTI_InitTypeDef exti_cfg = {
-        .Line_0_31 = LL_EXTI_LINE_0,
-        .LineCommand = ENABLE,
-        .Mode = LL_EXTI_MODE_IT,
-        .Trigger = LL_EXTI_TRIGGER_RISING
-    };
-    exti0_callback = clbck;
-    exti0_callback_context = ctx;
-    int err = LL_EXTI_Init(&exti_cfg);
-    if(err != SUCCESS) return err;
-    NVIC_EnableIRQ(EXTI0_IRQn);*/
     btn_callback = clbck;
     btn_callback_context = ctx;
 

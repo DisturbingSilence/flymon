@@ -1,9 +1,9 @@
-#include "spi.h"
+#include <drivers/err.h>
+#include <drivers/spi.h>
+#include <drivers/systime.h>
+
 #include "stm32f4xx_ll_gpio.h"
 #include "stm32f4xx_ll_bus.h"
-
-#include "systime.h"
-#include "err.h"
 
 int spi_init(spi_bus_t* bus)
 {

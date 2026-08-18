@@ -10,6 +10,10 @@ typedef struct
     uint32_t channel;
     uint32_t direction;
     uint32_t priority;
+    uint32_t mode;
+
+    IRQn_Type irq;
+    uint32_t timeout;
 } dma_config_t;
 
 typedef struct
@@ -22,4 +26,5 @@ typedef struct
 typedef void(*dma_callback_t)(void*);
 int dma_init(dma_channel_t* bus,const dma_config_t* cfg);
 void dma_set_callback(dma_channel_t* bus,dma_callback_t clbck,void* ctx);
-int dma_start(dma_channel_t* bus,uint32_t src,uint32_t dst,uint32_t len);
+int dma_start(dma_channel_t* bus,uint32_t src,uint32_t dst,uint16_t len);
+uint16_t dma_get_remaining(const dma_channel_t* channel);

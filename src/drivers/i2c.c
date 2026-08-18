@@ -1,9 +1,7 @@
-#include "i2c.h"
+#include <drivers/i2c.h>
+#include <drivers/err.h>
+#include <drivers/systime.h>
 #include "stm32f4xx_ll_bus.h"
-#include "err.h"
-#include "dma.h"
-#include "systime.h"
-
 
 static inline void __i2c_wait_stop(i2c_bus_t* bus)
 {
@@ -20,7 +18,7 @@ static void __i2c_abort(i2c_bus_t* bus)
     LL_I2C_GenerateStopCondition(i2c);
     while(LL_I2C_IsActiveFlag_BUSY(i2c));
 }
-int i2c_init(i2c_bus_t* bus)
+int i2c_init(i2c_bus_t* bus,uint32_t clock_speed)
 {
     if(!bus) return ERR_INV_ARG;
     if(bus->instance == I2C1)
@@ -34,7 +32,7 @@ int i2c_init(i2c_bus_t* bus)
     LL_I2C_InitTypeDef cfg =
     {
         .PeripheralMode = LL_I2C_MODE_I2C,
-        .ClockSpeed = bus->clock_speed,
+        .ClockSpeed = clock_speed,
         .DutyCycle = LL_I2C_DUTYCYCLE_2,
         .OwnAddress1 = 0,
         .TypeAcknowledge = LL_I2C_ACK,

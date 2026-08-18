@@ -2,7 +2,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <drivers/i2c.h>
-#include <drivers/dma.h>
 #define SSD1306_I2C_ADDR 0x78
 #define SSD1306_WIDTH 128
 #define SSD1306_HEIGHT 64
@@ -21,7 +20,8 @@ void ssd1306_set_window(ssd1306_device_t* dev,uint8_t page_start,uint8_t page_en
 void ssd1306_update(ssd1306_device_t* dev);
 
 void ssd1306_set_pixel(ssd1306_device_t* dev,unsigned x,unsigned y,bool value);
-void ssd1306_draw_rect(ssd1306_device_t* dev,unsigned x1,unsigned y1,unsigned width,unsigned height);
+void ssd1306_draw_rect(ssd1306_device_t* dev,unsigned x1,unsigned y1,unsigned width,unsigned height,bool color);
+void ssd1306_draw_line(ssd1306_device_t* dev,unsigned x1,unsigned y1,unsigned x2,unsigned y2,bool color);
 void ssd1306_clear(ssd1306_device_t* dev,bool value);
 void ssd1306_draw_text(ssd1306_device_t* dev,const char* txt,unsigned x1,unsigned y1);
 void ssd1306_draw_bmp(ssd1306_device_t* dev,const uint8_t* pixels,unsigned width,unsigned height,unsigned x1,unsigned y1);

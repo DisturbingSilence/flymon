@@ -1,8 +1,5 @@
-#include "ssd1306.h"
-#include "stm32f4xx_ll_i2c.h"
-#include "stm32f4xx_ll_dma.h"
+#include <drivers/ssd1306.h>
 #include <services/font.h>
-#include <drivers/i2c.h>
 #include <drivers/dma.h>
 #include <drivers/err.h>
 int ssd1306_init(ssd1306_device_t* dev)
@@ -66,7 +63,6 @@ void ssd1306_update(ssd1306_device_t* dev)
         .on_tx_complete_callback = ssd1306_dma_on_complete,
         .ctx = dev
     };
-
     if(i2c_dma_write(&dev->i2c_bus,&tr_info) != ERR_OK)
     {
         dev->is_busy = false;
@@ -83,13 +79,13 @@ void ssd1306_set_pixel(ssd1306_device_t* dev,unsigned x,unsigned y,bool value)
     else
         dev->framebuffer[byte] &= ~bit;
 }
-void ssd1306_draw_rect(ssd1306_device_t* dev,unsigned x1,unsigned y1,unsigned width,unsigned height)
+void ssd1306_draw_rect(ssd1306_device_t* dev,unsigned x1,unsigned y1,unsigned width,unsigned height,bool color)
 {
     for(unsigned x = x1;x < x1 + width;x++)
     {
         for(unsigned y = y1;y < y1 + height;y++)
         {
-            ssd1306_set_pixel(dev,x,y,1);
+            ssd1306_set_pixel(dev,x,y,color);
         }
     }
 }
@@ -148,5 +144,20 @@ void ssd1306_draw_text(ssd1306_device_t* dev,const char* txt,unsigned x1,unsigne
         ssd1306_draw_bmp(dev,FONT[*txt - ' '],fwidth,FONT_HEIGHT,curx,cury);
         curx += fwidth;
         ++txt;
+    }
+}
+void ssd1306_draw_line(ssd1306_device_t* dev,unsigned x1,unsigned y1,unsigned x2,unsigned y2,bool color)
+{
+    unsigned m_new = 2 * (y2 - y1);
+    unsigned slope_error_new = m_new - (x2 - x1);
+    for (int x = x1, y = y1; x <= x2; x++)
+    {
+        ssd1306_set_pixel(dev,x,y,color);
+        slope_error_new += m_new;
+        if (slope_error_new >= 0)
+        {
+            y++;
+            slope_error_new -= 2 * (x2 - x1);
+        }
     }
 }

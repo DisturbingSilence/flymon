@@ -1,7 +1,7 @@
 #pragma once
 #include <stdint.h>
 
-#define DEBOUNCE_STABLE_COUNT 3
+#define DEBOUNCE_STABLE_COUNT 10
 #define BTN_SAMPLING_FREQUENCY 100
 
 typedef enum

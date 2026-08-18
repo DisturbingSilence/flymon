@@ -12,6 +12,10 @@ enum
 
     ERR_SCHEDULER_TOO_MANY_TASKS,
 
+    ERR_OVERFLOW,
+    ERR_UNDERFLOW,
+    ERR_EMPTY,
+    ERR_INCOMPLETE
 };
 #define PANIC(err) do { \
     int _err = (err);   \

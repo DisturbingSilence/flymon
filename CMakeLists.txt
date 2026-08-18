@@ -14,14 +14,16 @@ set(CMAKE_CXX_COMPILER_WORKS 1)
 set(CMAKE_ASM_COMPILER_WORKS 1)
 set(CMAKE_C_STANDARD 23)
 
-project(AttitudeIndicator LANGUAGES C ASM)
+project(AttitudeIndicator LANGUAGES C ASM VERSION 0.0.1)
 
 add_subdirectory(deps)
 
-set(BSP_P src/bsp)
-set(DRV_P src/drivers)
-set(SRV_P src/services)
+set(BSP_P ${CMAKE_SOURCE_DIR}/src/bsp)
+set(DRV_P ${CMAKE_SOURCE_DIR}/src/drivers)
+set(SRV_P ${CMAKE_SOURCE_DIR}/src/services)
+set(APP_P ${CMAKE_SOURCE_DIR}/src/app)
 
+configure_file(${APP_P}/config.h.in ${APP_P}/config.h @ONLY)
 set(BSP_SOURCES
   ${BSP_P}/STM32F411CEU6.c)
 set(DRIVER_SOURCES
@@ -33,11 +35,15 @@ set(DRIVER_SOURCES
   ${DRV_P}/systime.c
   ${DRV_P}/spi.c
   ${DRV_P}/w25qxx.c
-  ${DRV_P}/mpu60x0.c)
+  ${DRV_P}/mpu60x0.c
+  ${DRV_P}/usart.c
+  ${DRV_P}/ble.c
+  ${DRV_P}/ringbuffer.c)
 set(SERVICE_SOURCES
   ${SRV_P}/font.c
   ${SRV_P}/scheduler.c
-  ${SRV_P}/buttons.c)
+  ${SRV_P}/buttons.c
+  ${SRV_P}/ui.c)
 add_executable(main
   src/app/main.c
   ${BSP_SOURCES}
