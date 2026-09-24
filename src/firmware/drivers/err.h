@@ -15,7 +15,8 @@ enum
     ERR_OVERFLOW,
     ERR_UNDERFLOW,
     ERR_EMPTY,
-    ERR_INCOMPLETE
+    ERR_INCOMPLETE,
+    ERR_INV_MAGIC
 };
 #define PANIC(err) do { \
     int _err = (err);   \

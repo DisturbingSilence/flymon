@@ -42,6 +42,12 @@ int board_init_usart1_pins()
     gpio_cfg.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
     gpio_cfg.Speed = LL_GPIO_SPEED_FREQ_LOW;
     err = LL_GPIO_Init(GPIOB,&gpio_cfg);
+    if(err != SUCCESS) return err;
+    gpio_cfg.Pin = LL_GPIO_PIN_1;
+    gpio_cfg.Mode = LL_GPIO_MODE_INPUT;
+    gpio_cfg.Pull = LL_GPIO_PULL_NO;
+    gpio_cfg.Speed = LL_GPIO_SPEED_FREQ_LOW;
+    err = LL_GPIO_Init(GPIOB,&gpio_cfg);
     return err == SUCCESS;
 }
 int board_init_spi2_pins()

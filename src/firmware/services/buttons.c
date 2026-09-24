@@ -51,9 +51,11 @@ int buttons_init(button_callback_t clbck,void* ctx)
     NVIC_EnableIRQ(ADC_IRQn);
     LL_ADC_SetChannelSamplingTime(ADC1,LL_ADC_CHANNEL_8,LL_ADC_SAMPLINGTIME_56CYCLES);
     LL_ADC_REG_SetSequencerRanks(ADC1,LL_ADC_REG_RANK_1,LL_ADC_CHANNEL_8);
-    LL_ADC_REG_StartConversionExtTrig(ADC1,LL_ADC_REG_TRIG_EXT_RISING);
+
     LL_ADC_Enable(ADC1);
     sleep(1); // tSTAB
+    LL_ADC_REG_StartConversionExtTrig(ADC1,LL_ADC_REG_TRIG_EXT_RISING);
+
     LL_RCC_ClocksTypeDef clocks = {};
     LL_RCC_GetSystemClocksFreq(&clocks);
 
@@ -81,37 +83,42 @@ int buttons_init(button_callback_t clbck,void* ctx)
 }
 static button_t button_from_adc(uint16_t v)
 {
-    if(v < 100) return BUTTON_NONE;
-    else if(v < 1200) return BUTTON_SELECT;
-    else if(v < 2800) return BUTTON_RIGHT;
-    else return BUTTON_LEFT;
+    if (v < 200)
+        return BUTTON_NONE;
+    else if (v < 1200)
+        return BUTTON_SELECT;
+    else if (v < 2800)
+        return BUTTON_RIGHT;
+    else
+        return BUTTON_LEFT;
 }
-void ADC_IRQHandler()
+
+void ADC_IRQHandler(void)
 {
-    if (LL_ADC_IsActiveFlag_EOCS(ADC1))
+    if (!LL_ADC_IsActiveFlag_EOCS(ADC1))
+        return;
+
+    uint16_t value = LL_ADC_REG_ReadConversionData12(ADC1);
+    button_t sampled_btn = button_from_adc(value);
+
+    if (sampled_btn != current_candidate)
     {
-        uint16_t value = LL_ADC_REG_ReadConversionData12(ADC1);
-        button_t sampled_btn = button_from_adc(value);
-        if (sampled_btn == current_candidate)
+        current_candidate = sampled_btn;
+        candidate_count = 1;
+        return;
+    }
+    if (candidate_count < DEBOUNCE_STABLE_COUNT)
+    {
+        candidate_count++;
+    }
+    if (candidate_count < DEBOUNCE_STABLE_COUNT) return;
+    if (current_candidate != BUTTON_NONE)
+    {
+        last_stable_button = current_candidate;
+
+        if (btn_callback)
         {
-            if (candidate_count < DEBOUNCE_STABLE_COUNT)
-            {
-                candidate_count++;
-            }
-        }
-        else
-        {
-            current_candidate = sampled_btn;
-            candidate_count = 1;
-        }
-        if (candidate_count >= DEBOUNCE_STABLE_COUNT && current_candidate != last_stable_button)
-        {
-            last_stable_button = current_candidate;
-            if (btn_callback)
-            {
-                btn_callback(btn_callback_context,last_stable_button);
-            }
+            btn_callback(btn_callback_context, current_candidate);
         }
     }
-
 }

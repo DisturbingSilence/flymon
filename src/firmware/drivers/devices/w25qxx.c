@@ -2,6 +2,7 @@
 #include <drivers/peripherals/spi.h>
 #include <drivers/systime.h>
 #include <drivers/err.h>
+#include <string.h>
 
 static void spi_cs_select(w25qxx_flash_t* flash)
 {
@@ -103,44 +104,35 @@ int w25qxx_erase_sector(w25qxx_flash_t* flash,uint16_t sector)
 }
 int w25qxx_write(w25qxx_flash_t* flash,uint32_t page,uint32_t offs,const uint8_t* data,uint32_t len)
 {
-    if(!(flash && data)) return ERR_INV_ARG;
-    if(page >= flash->pages || offs >= PAGE_SIZE) return ERR_INV_ARG;
-    if(len == 0) return ERR_OK;
-    if ((page * PAGE_SIZE + offs + len) > (flash->pages * PAGE_SIZE)) return ERR_INV_ARG;
+    if (!(flash && data && (page < flash->pages) && (offs < PAGE_SIZE))) return ERR_INV_ARG;
+    if (len == 0) return ERR_OK;
+    uint32_t address = page * PAGE_SIZE + offs;
+    uint32_t total_size = flash->pages * PAGE_SIZE;
+    if (address + len > total_size) return ERR_INV_ARG;
     if (w25qxx_is_busy(flash)) return ERR_BUSY;
-    uint8_t tx_data[266];
-    uint32_t start_page = page;
-    uint32_t end_page = start_page + (len + offs - 1) / PAGE_SIZE;
-    uint32_t num_pages = end_page - start_page + 1;
+    uint8_t tx_data[4 + PAGE_SIZE];
     uint32_t data_pos = 0;
-    for (uint32_t i = 0; i < num_pages;i++)
-	{
-		uint32_t addr = (start_page * PAGE_SIZE) + offs;
-		uint16_t remaining  = (len + offs) < PAGE_SIZE ? len : PAGE_SIZE - offs;
-		uint32_t index = 4;
-		RET_ERR(w25qxx_write_enable(flash));
-		if(!w25qxx_is_wel(flash)) return ERR_IO;
-		tx_data[0] = 0x02; // page program
-		tx_data[1] = (addr >> 16) & 0xFF;
-		tx_data[2] = (addr >> 8)  & 0xFF;
-		tx_data[3] = (addr >> 0)  & 0xFF;
-		uint16_t bytes_to_send  = remaining + index;
-
-		for (uint16_t i = 0;i < remaining;i++)
-		{
-			tx_data[index++] = data[i + data_pos];
-		}
-		spi_cs_select(flash);
-		int status = spi_write(flash->spi_bus,tx_data,bytes_to_send);
-		spi_cs_deselect(flash);
-		RET_ERR(status);
-
-		start_page++;
-		offs = 0;
-		len -= remaining;
-		data_pos += remaining;
-		WAIT_TIMEOUT(w25qxx_is_busy(flash),5);
-	}
+    while (data_pos < len)
+    {
+        uint32_t current_address = address + data_pos;
+        uint32_t page_offset = current_address % PAGE_SIZE;
+        uint32_t remaining_in_page = PAGE_SIZE - page_offset;
+        uint32_t remaining = len - data_pos;
+        uint32_t bytes_to_write = remaining < remaining_in_page ? remaining : remaining_in_page;
+        RET_ERR(w25qxx_write_enable(flash));
+        if (!w25qxx_is_wel(flash)) return ERR_IO;
+        tx_data[0] = 0x02;
+        tx_data[1] = (current_address >> 16) & 0xFF;
+        tx_data[2] = (current_address >> 8) & 0xFF;
+        tx_data[3] = current_address & 0xFF;
+        memcpy(&tx_data[4],&data[data_pos],bytes_to_write);
+        spi_cs_select(flash);
+        int status = spi_write(flash->spi_bus,tx_data,bytes_to_write + 4);
+        spi_cs_deselect(flash);
+        RET_ERR(status);
+        WAIT_TIMEOUT(w25qxx_is_busy(flash),100);
+        data_pos += bytes_to_write;
+    }
     return ERR_OK;
 }
 int w25qxx_read(w25qxx_flash_t* flash,uint32_t page,uint32_t offs,uint8_t* data,uint32_t len)

@@ -77,7 +77,6 @@ set(DRIVER_SOURCES
 set(SERVICE_SOURCES
   ${SRV_P}/font.c
   ${SRV_P}/scheduler.c
-  ${SRV_P}/ble_protocol.c
   ${SRV_P}/buttons.c
   ${SRV_P}/ui.c)
 
@@ -87,13 +86,14 @@ add_executable(firmware
   ${DRIVER_SOURCES}
   ${SERVICE_SOURCES})
 
+add_dependencies(firmware MAVLINK_LIBC)
+target_include_directories(firmware PRIVATE ${PROJECT_SOURCE_DIR}/src ${MAVLINK_DIR})
 set_target_properties(firmware PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
-
 set_target_properties(firmware PROPERTIES SUFFIX ".elf")
 target_link_libraries(firmware PRIVATE stm32f4_drivers)
 target_compile_features(firmware PRIVATE c_std_23)
 
-set(COMMON_COMPILE_OPTIONS -Wall -mcpu=cortex-m4 -mthumb -Wall -pedantic)
+set(COMMON_COMPILE_OPTIONS -Wall -mcpu=cortex-m4 -mthumb -Wall -pedantic -Wno-address-of-packed-member)
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   target_compile_options(firmware PRIVATE ${COMMON_COMPILE_OPTIONS} -O0 -g3 -ggdb)
 elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
