@@ -29,17 +29,17 @@ if(NOT simpleble_POPULATED)
     add_subdirectory("${simpleble_SOURCE_DIR}/simpleble" "${simpleble_BINARY_DIR}")
 endif()
 
-target_compile_options(simpleble PRIVATE -Wno-unused-function)
 add_executable(desktop_app
   desktop_main.cpp
   main_window.cpp
   widgets/ble_discovery_menu.cpp
   widgets/attitude_widget.cpp)
+
 set_property(TARGET desktop_app PROPERTY CXX_EXTENSIONS OFF)
 add_dependencies(desktop_app MAVLINK_LIBC)
 
 target_include_directories(desktop_app PRIVATE ${PROJECT_SOURCE_DIR}/src ${MAVLINK_DIR})
 target_compile_features(desktop_app PRIVATE cxx_std_20)
 target_link_libraries(desktop_app PRIVATE simpleble::simpleble fltk fltk_gl)
-target_compile_options(desktop_app PRIVATE -g -ggdb -O0 -Wall -Wno-address-of-packed-member)
+target_compile_options(desktop_app PRIVATE -O3 -Wall -Wno-address-of-packed-member -Wno-unused-function)
 set_target_properties(desktop_app PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
